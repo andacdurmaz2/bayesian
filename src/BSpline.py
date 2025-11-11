@@ -4,7 +4,7 @@ from typing import List, Tuple, Optional
 
 class BSplineBasis:
     """
-    A reusable B-spline basis generator for uniform cubic B-splines.
+    A wrapper for the B-spline basis generator.
     """
     
     def __init__(self, t0: float, t1: float, n_basis: int = 8, degree: int = 3):
