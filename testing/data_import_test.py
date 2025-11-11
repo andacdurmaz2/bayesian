@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 
 
-from Code.data_import import data
+from src.data_import import data
 
 
 
