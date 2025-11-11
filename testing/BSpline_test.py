@@ -1,5 +1,5 @@
 # testing/BSpline_test.py
-from Code.BSpline import BSplineBasis
+from src.BSpline import BSplineBasis
 import numpy as np
 import matplotlib.pyplot as plt
 
