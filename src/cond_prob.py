@@ -70,4 +70,5 @@ scale_matrix = np.array([[2, 0.5], [0.5, 1]])
 # Draw samples from inverse Wishart
 inv_wishart_samples = invwishart_rvs(df=df, scale=scale_matrix, size=1000)
 print(f"Inverse Wishart samples shape: {inv_wishart_samples.shape}")
+print('Hallo')
 
