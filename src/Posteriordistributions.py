@@ -60,16 +60,18 @@ def update_beta(y_list, X_list, b_list, sigma2_eps, Sigma_b, c, n_pixels):
     return beta
 
 
-def update_bi(yi, Xi, beta, sigma2_eps, Sigma_b):
+def update_bi(y_list, X_list, i, beta, sigma2_eps, Sigma_b):
     """
     Update pixel-specific random effects bi for pixel i.
 
     Parameters:
     -----------
-    yi : ndarray
-        Temperature observations for pixel i
-    Xi : ndarray
-        Design matrix for pixel i
+    y_list : list of ndarrays
+        Temperature observations for all pixels
+    X_list : list of ndarrays
+        Design matrices for all pixels
+    i : int
+        Index of the pixel to update
     beta : ndarray
         Current population coefficients
     sigma2_eps : float
@@ -82,6 +84,10 @@ def update_bi(yi, Xi, beta, sigma2_eps, Sigma_b):
     bi : ndarray
         Updated random effects for pixel i
     """
+    # Extract data for pixel i
+    yi = y_list[i]
+    Xi = X_list[i]
+
     Sigma_b_inv = np.linalg.inv(Sigma_b)
 
     # Compute Sigma_bi_conditional
