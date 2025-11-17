@@ -1,19 +1,22 @@
+''' not sure about this
+'''
 import numpy as np
-from scipy.stats import invgamma, wishart
-import scipy.special as sp
+from numpy.linalg import inv, slogdet
+from scipy.stats import invgamma, invwishart, multivariate_normal
 
+'this is just the cond probs again'
 def sigma_e_given_rest(c_e, m, d_e, Y, X, b_mat):
-     
+
     """
     Draw samples from sigma_e given the rest of the parameters
-    
+
     Parameters:
     ce : int
         previous alpha
     de : int
         previous beta
     Y : int
-        Y is result array -> dim: (mi x 1) => 25 x 1 
+        Y is result array -> dim: (mi x 1) => 25 x 1
     X : array like matrix
         Basis function scaled by coeficients 1, evaluted at each year -> dim: (K x mi) => 8 x 25
     b_mat: array
@@ -39,7 +42,7 @@ def sigma_e_given_rest(c_e, m, d_e, Y, X, b_mat):
 def invwishart_rvs(df, scale, size=1):
     """
     Draw samples from inverse Wishart distribution
-    
+
     Parameters:
     df : int
         Degrees of freedom
@@ -50,7 +53,7 @@ def invwishart_rvs(df, scale, size=1):
     """
     # Inverse Wishart: if X ~ Wishart(df, scale^{-1}), then X^{-1} ~ InvWishart(df, scale)
     scale_inv = np.linalg.inv(scale)
-    
+
     if size == 1:
         # Draw one sample
         wishart_sample = wishart.rvs(df=df, scale=scale_inv)
@@ -123,13 +126,55 @@ def b_sample(Sigma_b, sigma_e2, X, y):
     return beta_sample, mean_b, Sigma_beta_new
 
 
-# Example usage:
-df = 10
-scale_matrix = np.array([[2, 0.5], [0.5, 1]])
+'''
+-----MCMC----- i tried but maybe this is way to simple
+'''
 
 
-# Draw samples from inverse Wishart
-inv_wishart_samples = invwishart_rvs(df=df, scale=scale_matrix, size=1000)
-print(f"Inverse Wishart samples shape: {inv_wishart_samples.shape}")
-print('Hallo')
+
+def mcmc_sampler(X, y, n_iter=10000, burn_in=2000):
+      '''
+    Parameters:
+    X: list of design matrices
+    y: list of sol vectors
+    n_iter: number of MCMC iterations
+    burn_in: burn-in period
+    '''
+    n = len(X)
+    p = X[0].shape[1]
+
+    # Initial values
+    beta = np.zeros(p)
+    sigma_e2 = 1.0
+    Sigma_b = np.eye(p)
+    c = 1.0
+
+    # Storage
+    beta_samples = np.zeros((n_iter, p))
+    sigma_e2_samples = np.zeros(n_iter)
+    Sigma_b_samples = np.zeros((n_iter, p, p))
+
+    for iter in range(n_iter):
+        # 1. Sample beta from its conditional distribution
+        beta = beta_sample(Sigma_b, sigma_e2, X, y, c)
+
+        # 2. Sample sigma_e2 from its conditional distribution
+        sigma_e2 = sigma_e_given_rest(c_e, m, d_e, Y, X, b_mat)
+
+        # 3. Sample Sigma_b from its conditional distribution
+        Sigma_beta = b_sample(Sigma_b, sigma_e2, X, y)
+
+        # i dont know about the IWS? confdsed Sigma_b = invwishart_rvs(df, scale, size=1):
+
+        # Store samples
+        beta_samples[iter] = beta
+        sigma_e2_samples[iter] = sigma_e2
+        Sigma_b_samples[iter] = Sigma_b
+
+    # Remove burn-in
+    beta_samples = beta_samples[burn_in:]
+    sigma_e2_samples = sigma_e2_samples[burn_in:]
+    Sigma_b_samples = Sigma_b_samples[burn_in:]
+
+    return beta_samples, sigma_e2_samples, Sigma_b_samples
 
