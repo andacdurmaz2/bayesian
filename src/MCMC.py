@@ -178,3 +178,4 @@ def mcmc_sampler(X, y, n_iter=10000, burn_in=2000):
 
     return beta_samples, sigma_e2_samples, Sigma_b_samples
 
+print('warum klappt es nicht ')
