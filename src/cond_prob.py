@@ -84,7 +84,7 @@ def beta_sample(Sigma_b, sigma_e2, X, y, c):
     term_sum = np.zeros((p, p))
     for i in range(n):
         A = np.linalg.inv((1 / sigma_e2) * X[i].T @ X[i] + Sigma_b_inv)
-        term_sum1 += Sigma_b_inv @ A * (1 / sigma_e2) * X[i].T @ Sigma_b_inv @ y[i]
+        term_sum1 += Sigma_b_inv[i] @ A[i] * (1 / sigma_e2) * X[i].T @ Sigma_b_inv[i] @ y[i]
 
     mean_beta = Sigma_b_inv @ term_sum1
 
@@ -94,9 +94,9 @@ def beta_sample(Sigma_b, sigma_e2, X, y, c):
     sum_term = np.zeros((p, p))
     for i in range(n):
         A = np.linalg.inv((1 / sigma_e2) * X[i].T @ X[i] + Sigma_b_inv)
-        term_sum2 += Sigma_b_inv @ A @ Sigma_b_inv
+        term_sum2 += Sigma_b_inv[i] @ A[i] @ Sigma_b_inv[i]
 
-    sigma_beta = np.linalg.inv(n * Sigma_beta + 1/c * I_p - term_sum2)
+    sigma_b eta = np.linalg.inv(n * Sigma_beta + 1/c * I_p - term_sum2)
 
     beta_sample = np.random.multivariate_normal(mean_beta.flatten(), Sigma_beta)
     return beta_sample, mean_b, Sigma_beta
