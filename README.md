@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# bayesian
-=======
 # Bayes Project
 
 ## SRC
@@ -54,4 +51,3 @@ pip install numpy scipy matplotlib pandas
 
 
 
->>>>>>> 39050ab (Readme with everything you need to run it)
