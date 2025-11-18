@@ -25,20 +25,22 @@ if __name__ == "__main__":
     true_b_list = []
 
     print("Simulating data...")
+    X_i = np.ones((m_obs_per_group, z_features))
+    X_i[:, 1:] = np.random.randn(m_obs_per_group, z_features - 1)
     for _ in range(n_groups):
         # Draw group-level params
         b_i = np.random.multivariate_normal(true_beta, true_sigma_b)
         true_b_list.append(b_i)
 
         # Create design matrix X_i
-        X_i = np.ones((m_obs_per_group, z_features))
-        X_i[:, 1:] = np.random.randn(m_obs_per_group, z_features - 1)
+        #X_i = np.ones((m_obs_per_group, z_features))
+        #X_i[:, 1:] = np.random.randn(m_obs_per_group, z_features - 1)
 
         # Create observations y_i
         error = np.random.normal(0, np.sqrt(true_sigma_e), m_obs_per_group)
         y_i = X_i @ b_i + error
 
-        X_list.append(X_i)
+        #X_list.append(X_i)
         y_list.append(y_i)
 
     print(f"Data simulated: n={n_groups}, m_i={m_obs_per_group}, z={z_features}")
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     }
 
     # --- 3. Run MCMC ---
-    samples = run_mcmc(y_list, X_list, priors, n_iter=3000, n_burn=1500)
+    samples = run_mcmc(y_list, X_i, priors, n_iter=3000, n_burn=1500)
 
     # --- 4. Show Results ---
     print("\n--- Posterior Means vs. True Values ---")

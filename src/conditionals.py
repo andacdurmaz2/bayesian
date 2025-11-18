@@ -61,7 +61,7 @@ def b_draw(beta, sigma_b, sigma_e, y, X):
 
     # --- Loop over all n groups ---
     for i in range(n):
-        X_i = X[i]
+        X_i = X
         y_i = y[i]
 
         # Ensure y_i is a column vector (m_i, 1)
@@ -159,7 +159,7 @@ def beta_draw(sigma_b, sigma_e, y, c, n, X):
 
     # --- Loop over all n groups ---
     for i in range(n):
-        X_i = X[i]
+        X_i = X
         y_i = y[i]
 
         # Ensure y_i is a column vector (m_i, 1)
@@ -256,7 +256,7 @@ def sigma_e_draw(beta, sigma_b, y, n, X, b, d, c, m):
     total_sse = 0.0
     for i in range(n):
         y_i = y[i].flatten()  # Ensure 1D (m_i,)
-        X_i = X[i]            # (m_i, z)
+        X_i = X            # (m_i, z)
         b_i = b[i].flatten()  # Ensure 1D (z,)
 
         # Calculate residuals: r_i = y_i - X_i @ b_i
