@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
 
     K=8 # number of basis functions. Calles "K" in Biostatistics paper
-    spline_basis=BSplineBasis(t0=0,t1=25, n_basis=K,degree=3)
+    spline_basis=BSplineBasis(t0=0,t1=30, n_basis=K,degree=3)
     ts, B= spline_basis.evaluate()
     print('B:',B.T.shape)
     print('y:',len(data))
