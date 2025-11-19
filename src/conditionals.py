@@ -102,7 +102,6 @@ def b_draw(beta, sigma_b, sigma_e, y, X):
     return b_samples_list
     
 
-
 def beta_draw(sigma_b, sigma_e, y, c, n, X):
     """
     Draws a single sample for the population coefficients beta.
@@ -209,6 +208,7 @@ def beta_draw(sigma_b, sigma_e, y, c, n, X):
     beta_sample = np.random.multivariate_normal(mu_beta.flatten(), sigma_beta)
 
     return beta_sample
+
 
 def sigma_e_draw(beta, sigma_b, y, n, X, b, d, c, m):
     """

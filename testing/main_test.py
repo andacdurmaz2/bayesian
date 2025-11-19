@@ -62,6 +62,7 @@ def plot_fitted_curves(ax, data, B, samples, spline_basis, group_idx=0, n_curves
     # Randomly select posterior samples to plot
     n_samples = len(samples['beta'])
     selected_indices = np.random.choice(n_samples, n_curves, replace=False)
+    print('Selected_indices:',selected_indices)
     
     # Plot original data
     if group_idx < len(data):
@@ -85,10 +86,10 @@ def plot_fitted_curves(ax, data, B, samples, spline_basis, group_idx=0, n_curves
             b = samples['b_0'][idx] if 'b_0' in samples else np.zeros_like(beta)
         
         # Calculate fitted curve
-        curve = B @ (b)
+        curve = B @ b
         
         # Plot with low alpha for posterior uncertainty
-        ax.plot(ts, curve, alpha=0.1, color='blue')
+        ax.plot(ts, curve, alpha=1, color='blue')
     
     # Plot mean posterior curve
     mean_beta = np.mean(samples['beta'], axis=0)
@@ -244,12 +245,9 @@ if __name__ == "__main__":
      # --- 1. Create B-Spline Basis ---
 
 
-    K=8 # number of basis functions. Calles "K" in Biostatistics paper
-    spline_basis=BSplineBasis(t0=0,t1=30, n_basis=K,degree=3)
+    K=15 # number of basis functions. Calles "K" in Biostatistics paper
+    spline_basis=BSplineBasis(t0=0,t1=30, n_basis=K,degree=4)
     ts, B= spline_basis.evaluate()
-    print('B:',B.T.shape)
-    print('y:',len(data))
-    print('y[i]',data[0].shape)
 
 
     # --- 2. Import CSV data ---
@@ -264,6 +262,6 @@ if __name__ == "__main__":
         'S_b': np.eye(K)   # Prior mean matrix for sigma_b
     }
  # --- 4. Run MCMC ---
-    samples = run_mcmc(data, B.T, priors, n_iter=3000, n_burn=1500)
+    samples = run_mcmc(data, B.T, priors, n_iter=10000, n_burn=5000)
     print("\n--- Generating Plots ---")
     plot_mcmc_results(data, B.T, samples, spline_basis, n_curves=100)
