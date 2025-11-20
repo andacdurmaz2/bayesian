@@ -7,7 +7,7 @@ from src.BSpline import BSplineBasis
 class BSplineTester:
     """Test class for BSplineBasis functionality."""
     
-    def __init__(self, t0=0, t1=25, n_basis=8, degree=3):
+    def __init__(self, t0=0, t1=25, n_basis=8, degree=4):
         self.spline_basis = BSplineBasis(t0=t0, t1=t1, n_basis=n_basis, degree=degree)
         self.test_coef_ones = np.ones((1, n_basis))
         self.test_coef_rand = np.array([[1.4, 0.2, 0.3, 6.2, 4.2, 2.4, 3.2, 0]])

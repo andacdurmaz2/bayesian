@@ -4,6 +4,7 @@ import seaborn as sns
 from src.data_import import data
 from src.BSpline import BSplineBasis
 from src.MCMC import run_mcmc
+import random
 
 def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     """
@@ -26,8 +27,11 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     """
     
     np.random.seed(seed)
-    
-    # Create figure with subplots
+    # Create figure and axis properly
+    fig, ax = plt.subplots(figsize=(12, 8))
+    plot_mean_all_points(ax, data, B, samples, spline_basis, group_idx=0, n_curves=1000)
+    plt.tight_layout()
+    plt.show()
     fig = plt.figure(figsize=(15, 12))
     
     # 1. Fitted curves for first group
@@ -50,29 +54,28 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     plt.show()
     
     # Additional detailed plots
-    plot_detailed_traces(samples)
-    plot_posterior_distributions(samples)
+    #plot_detailed_traces(samples)
+    #plot_posterior_distributions(samples)
 
-def plot_fitted_curves(ax, data, B, samples, spline_basis, group_idx=0, n_curves=50):
+def plot_fitted_curves(ax, data, B_old, samples, spline_basis, group_idx=0, n_curves=1):
     """Plot fitted curves for a specific group"""
     
     # Get time points from spline basis
-    ts, _ = spline_basis.evaluate()
-    
+    ts, B = spline_basis.evaluate(n_points=200)
     # Randomly select posterior samples to plot
     n_samples = len(samples['beta'])
     selected_indices = np.random.choice(n_samples, n_curves, replace=False)
-    print('Selected_indices:',selected_indices)
     
     # Plot original data
+    ts_data=t_eval = np.linspace(0, 30, 30)
     if group_idx < len(data):
         group_data = data[group_idx]
         if group_data.ndim == 2:
             # If data has multiple observations per group
             for i in range(min(5, group_data.shape[0])):  # Plot first 5 observations
-                ax.scatter(ts, group_data[i], alpha=0.3, s=10, color='gray')
+                ax.scatter(ts_data, group_data[i], alpha=0.3, s=10, color='gray')
         else:
-            ax.scatter(ts, group_data, alpha=0.7, s=20, color='black', label='Data')
+            ax.scatter(ts_data, group_data, alpha=0.7, s=20, color='black', label=f'Data[{group_idx}]')
     
     # Plot posterior curves
     for idx in selected_indices:
@@ -86,10 +89,10 @@ def plot_fitted_curves(ax, data, B, samples, spline_basis, group_idx=0, n_curves
             b = samples['b_0'][idx] if 'b_0' in samples else np.zeros_like(beta)
         
         # Calculate fitted curve
-        curve = B @ b
+        curve = B.T @ beta
         
         # Plot with low alpha for posterior uncertainty
-        ax.plot(ts, curve, alpha=1, color='blue')
+        ax.plot(ts, curve, alpha=1, color='blue',label='mean (b[i])')
     
     # Plot mean posterior curve
     mean_beta = np.mean(samples['beta'], axis=0)
@@ -98,12 +101,12 @@ def plot_fitted_curves(ax, data, B, samples, spline_basis, group_idx=0, n_curves
     else:
         mean_b = np.mean(samples['b_0'], axis=0) if 'b_0' in samples else np.zeros_like(mean_beta)
     
-    mean_curve = B @ (mean_b)
-    ax.plot(ts, mean_curve, 'r-', linewidth=2, label='Posterior Mean')
+    mean_curve = B.T @ (mean_b[group_idx])
+    ax.plot(ts, mean_curve, 'r-', linewidth=2, label=f'mean (b[{group_idx}])')
     
     ax.set_xlabel('Lon')
-    ax.set_ylabel('Response')
-    ax.set_title(f'Fitted Curves - Group {group_idx}')
+    ax.set_ylabel('Temperature')
+    ax.set_title(f'Fitted Curves over data from year: {group_idx}')
     ax.legend()
     ax.grid(True, alpha=0.3)
 
@@ -240,6 +243,93 @@ def plot_posterior_distributions(samples):
     plt.tight_layout()
     plt.show()
 
+
+def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_curves=1000):
+    """Plot fitted curves for a specific group"""
+    
+    # Get time points from spline basis
+    ts, B = spline_basis.evaluate(n_points=200)
+    
+    # Randomly select posterior samples to plot
+    n_samples = len(samples['beta'])
+    selected_indices = np.random.choice(n_samples, n_curves, replace=False)
+
+    #------plot all data points -------
+    # Convert list to numpy array for easier manipulation
+    data_array = np.array(data)  # Shape: (time_points, longitudes)
+    
+    # If years not provided, create sequential indices
+    years = list(range(len(data_array)))
+    
+    # Get unique longitudes - map from 30-60 to 0-30 to match spline basis
+    n_longitudes = data_array.shape[1]
+    original_longitudes = np.linspace(30, 60, n_longitudes, endpoint=False)
+    # Map longitudes from 30-60 range to 0-30 range
+    mapped_longitudes = original_longitudes - 30
+    
+    # Create color mapping
+    cmap = plt.get_cmap('tab20')
+    year_colors = {year: cmap(i % 20) for i, year in enumerate(years)}
+    
+    # Plot data efficiently - for each time point, plot all longitudes
+    for time_idx, year in enumerate(years):
+        # Get temperatures for all longitudes at this time point
+        temps = data_array[time_idx]
+        
+        # Only add label for first time point to avoid duplicate legend entries
+        label = str(year) if time_idx == 0 else ""
+        
+        # Plot all longitudes for this time point (mapped to 0-30 range)
+        ax.scatter(mapped_longitudes, temps, 
+                   color=year_colors[year], label=label, alpha=0.7, s=20, zorder=5)
+    
+    # Plot posterior curves with transparency so data points are visible
+    for idx in selected_indices:
+        beta = samples['beta'][idx]
+        
+        # Get random effects for this group
+        #if f'b_{group_idx}' in samples:
+        #    b = samples[f'b_{group_idx}'][idx]
+        #else:
+            # If no group-specific random effects, use first group or zero
+        b = samples['b_0'][idx] # if 'b_0' in samples else np.zeros_like(beta)
+        
+        # Calculate fitted curve
+        yr = random.randint(0, 24)
+        curve = B.T @ b[yr]
+        
+        # Plot with transparency so data points are visible
+        label = 'Posterior samples' if idx == selected_indices[0] else ""
+        ax.plot(ts, curve, alpha=0.1, color='blue', label=label, zorder=3)
+    
+    # Plot mean posterior curve
+    mean_beta = np.mean(samples['beta'], axis=0)
+    if f'b_{group_idx}' in samples:
+        mean_b = np.mean(samples[f'b_{group_idx}'], axis=0)
+    else:
+        mean_b = np.mean(samples['b_0'], axis=0) if 'b_0' in samples else np.zeros_like(mean_beta)
+    
+    mean_curve = B.T @ mean_beta
+    ax.plot(ts, mean_curve, 'r-', linewidth=3, label='Mean posterior', zorder=4)
+    
+    # Set labels and title
+    ax.set_xlabel('Longitude (0-30)')
+    ax.set_ylabel('Temperature')
+    ax.set_title(f'Fitted Curves over all datapoints')
+    
+    # Create clean legend without duplicates
+    handles, labels = ax.get_legend_handles_labels()
+    unique_labels = []
+    unique_handles = []
+    for handle, label in zip(handles, labels):
+        if label not in unique_labels and label != "":
+            unique_labels.append(label)
+            unique_handles.append(handle)
+    
+    if unique_handles:
+        ax.legend(unique_handles, unique_labels, title="Year", loc='best')
+    
+    ax.grid(True, alpha=0.3)
 # Usage in your main script
 if __name__ == "__main__":
      # --- 1. Create B-Spline Basis ---
@@ -262,6 +352,6 @@ if __name__ == "__main__":
         'S_b': np.eye(K)   # Prior mean matrix for sigma_b
     }
  # --- 4. Run MCMC ---
-    samples = run_mcmc(data, B.T, priors, n_iter=10000, n_burn=5000)
+    samples = run_mcmc(data, B.T, priors, n_iter=20000, n_burn=1000)
     print("\n--- Generating Plots ---")
-    plot_mcmc_results(data, B.T, samples, spline_basis, n_curves=100)
+    plot_mcmc_results(data, B.T, samples, spline_basis, n_curves=1)

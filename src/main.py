@@ -34,35 +34,16 @@ if __name__ == "__main__":
 
     print("\nBeta (Population Coefficients):")
     print(f"  Posterior Mean: {np.mean(samples['beta'], axis=0)}")
+    print('beta_mean_dimensions :',np.mean(samples['beta'], axis=0).shape)
 
-    print("\nsigma_e (Residual Variance):")
-    print(f"  Posterior Mean: {np.mean(samples['sigma_e']):.4f}")
-
-    print("\nsigma_b (Random-Effect Covariance):")
-    print(f"  Posterior Mean:\n{np.mean(samples['sigma_b'], axis=0)}")
-
-
-    print("\nb_0 (Random Effects for Group 0):")
+    print("\nb_0 (Random Effects):")
+    print("b total shape:", samples['b_0'].shape)
     print(f"  Posterior Mean: {np.mean(samples['b_0'], axis=0)}")
-# --- 4. Show Results ---
-    print("\n--- Posterior Means vs. True Values ---")
+    print(f"Posterior Mean b dim:",np.mean(samples['b_0'], axis=0).shape)
 
-    print("\nBeta (Population Coefficients):")
-    print(f"  Posterior Mean: {np.mean(samples['beta'], axis=0)}")
-
-
-    print("\nsigma_e (Residual Variance):")
-    print(f"  Posterior Mean: {np.mean(samples['sigma_e']):.4f}")
-
-
-    print("\nsigma_b (Random-Effect Covariance):")
-    print(f"  Posterior Mean:\n{np.mean(samples['sigma_b'], axis=0)}")
- 
-
-    print("\nb_0 (Random Effects for Group 0):")
-    print(f"  Posterior Mean: {np.mean(samples['b_0'], axis=0)}")
-
-
+    print("\nb_0 (Random Effects Group 0):")
+    print(f"  Posterior Mean: {samples['b_0'][0]}")
+    
 
 
 

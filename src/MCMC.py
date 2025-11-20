@@ -119,7 +119,7 @@ def run_mcmc(y_list, X_list, priors, n_iter=2000, n_burn=1000):
     sigma_e_samples = np.zeros(n_samples)
     sigma_b_samples = np.zeros((n_samples, z, z))
     # We'll just store samples for the first group's b_i
-    b_0_samples = np.zeros((n_samples, z))
+    b_0_samples = np.zeros((n_samples,n, z))
 
     print(f"Running MCMC for {n_iter} iterations (burn-in: {n_burn})...")
 
@@ -137,12 +137,14 @@ def run_mcmc(y_list, X_list, priors, n_iter=2000, n_burn=1000):
             beta_samples[idx, :] = beta_curr
             sigma_e_samples[idx] = sigma_e_curr
             sigma_b_samples[idx, :, :] = sigma_b_curr
-            b_0_samples[idx, :] = b_curr[0]
+            for j in range(n):
+                b_0_samples[idx, j,:] = b_curr[j]
 
         if (i + 1) % 500 == 0:
             print(f"Iteration {i+1}/{n_iter}...")
 
     print("MCMC finished.")
+
 
     return {
         'beta': beta_samples,
