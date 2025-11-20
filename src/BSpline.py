@@ -57,7 +57,7 @@ class BSplineBasis:
                                for i in range(self.n_basis)]
     
     def evaluate(self, t_values: Optional[np.ndarray] = None, 
-                 n_points: int = 25) -> Tuple[np.ndarray, np.ndarray]:
+                 n_points: int = 30) -> Tuple[np.ndarray, np.ndarray]:
         """
         Evaluate all basis functions at given points or on a uniform grid.
         
