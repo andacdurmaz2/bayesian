@@ -109,6 +109,7 @@ def plot_temperature_3d(data, lat_range=(33, 53), lon_range=(2, 22)):
     plt.tight_layout()
     return fig, ax
 
+
 def plot_temperature_3d_single_year(data, year_index=0, lat_range=(33, 53), lon_range=(2, 22)):
     """
     Create a 3D surface plot for a single year.
@@ -295,6 +296,62 @@ def plot_temperature_3d_interactive(data, lat_range=(33, 53), lon_range=(2, 22))
     return fig, ax, year_slider
 
 
+def plot_temperature_3d_scatter_animated_simple(data, lat_range=(33, 53), lon_range=(2, 22)):
+    """
+    Simple animated 3D scatter plot that displays immediately.
+    """
+    from matplotlib.animation import FuncAnimation
+    
+    # Create coordinate grids
+    lats = np.linspace(lat_range[0], lat_range[1], data[0].shape[0])
+    lons = np.linspace(lon_range[0], lon_range[1], data[0].shape[1])
+    Lons, Lats = np.meshgrid(lons, lats)
+    
+    fig = plt.figure(figsize=(12, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    years = range(1983, 1983 + len(data))
+    
+    def update(frame):
+        ax.clear()
+        year_data = data[frame]
+        year = years[frame]
+        
+        # Flatten arrays
+        x_flat = Lons.flatten()
+        y_flat = Lats.flatten()
+        z_flat = year_data.flatten()
+        
+        mask = ~np.isnan(z_flat)
+        
+        # Plot scatter
+        scatter = ax.scatter(x_flat[mask], y_flat[mask], z_flat[mask],
+                           c=z_flat[mask], cmap='viridis', s=40, alpha=0.8)
+        
+        ax.set_xlabel('Longitude', fontweight='bold')
+        ax.set_ylabel('Latitude', fontweight='bold')
+        ax.set_zlabel('Mean Temperature', fontweight='bold')
+        ax.set_title(f'Mean Temperature - Year {year}', fontweight='bold')
+        
+        ax.set_xticks(np.arange(lon_range[0], lon_range[1] + 1, 5))
+        ax.set_yticks(np.arange(lat_range[0], lat_range[1] + 1, 5))
+        
+        # Set consistent axis limits
+        if len(data) > 0:
+            all_temps = np.concatenate([d[~np.isnan(d)] for d in data])
+            ax.set_zlim(np.min(all_temps) - 1, np.max(all_temps) + 1)
+        
+        ax.view_init(elev=20, azim=45)
+        plt.tight_layout()
+        
+        return scatter,
+    
+    # Create and immediately display animation
+    ani = FuncAnimation(fig, update, frames=len(data), interval=1000, blit=False, repeat=True)
+    plt.show()
+    
+    return ani
+
 if __name__ == "__main__":
     # First, let's debug the data structure
     print(f"Data type: {type(data)}")
@@ -307,6 +364,6 @@ if __name__ == "__main__":
     # Test with the individual plotting version (more similar to original)
     #plot_longitude_means_individual(data)     #--->2D plot
     #plot_temperature_3d_scatter(data)      
-    plot_temperature_3d_interactive(data)      #-----> 3D interactive (useful)
+    plot_temperature_3d_scatter_animated_simple(data)      #-----> 3D interactive (useful)
     plt.show()
     print('Plot generated successfully!')
