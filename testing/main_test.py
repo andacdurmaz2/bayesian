@@ -352,6 +352,6 @@ if __name__ == "__main__":
         'S_b': np.eye(K)   # Prior mean matrix for sigma_b
     }
  # --- 4. Run MCMC ---
-    samples = run_mcmc(data, B.T, priors, n_iter=3000, n_burn=1500)
+    samples = run_mcmc(data, B.T, priors, n_iter=5000, n_burn=3000)
     print("\n--- Generating Plots ---")
     plot_mcmc_results(data, B.T, samples, spline_basis, n_curves=1)
