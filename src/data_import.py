@@ -77,4 +77,5 @@ def load_and_prepare_data_2D(file_path="data/df_equator_2D.csv"):
 # print(f"Years: {years}")
 # print(f"Latitudes: {lats}")
 # print(f"Longitudes: {lons}")
-data = load_and_prepare_data_2D()      #<---- This is 2D
+#data = load_and_prepare_data_2D()      #<---- This is 2D
+data = load_and_prepare_data()      #<---- This is 1D
