@@ -79,8 +79,8 @@ def plot_fitted_curves(ax, data, B_old, samples, spline_basis, group_idx=0, n_cu
     
     # Plot posterior curves
     for idx in selected_indices:
-        beta = samples['beta'][idx]
-        
+        #beta = samples['beta'][idx]
+        beta = np.mean(samples['beta'], axis=0)
         # Get random effects for this group
         if f'b_{group_idx}' in samples:
             b = samples[f'b_{group_idx}'][idx]
@@ -295,7 +295,7 @@ def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_
         b = samples['b_0'][idx] # if 'b_0' in samples else np.zeros_like(beta)
         
         # Calculate fitted curve
-        yr = random.randint(0, 24)
+        yr = random.randint(0, 4)
         curve = B.T @ b[yr]
         
         # Plot with transparency so data points are visible
