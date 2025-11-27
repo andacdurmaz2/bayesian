@@ -41,8 +41,8 @@ def load_and_prepare_data_2D(file_path="data/df_equator_2D.csv"):
     df = df.sort_values(by=["year", "lat", "lon"])
     
     # Filter latitude and longitude ranges
-    df = df[(df["lat"] >= 33) & (df["lat"] <= 53) & 
-            (df["lon"] >= 2) & (df["lon"] <= 22)]
+    df = df[(df["lat"] >= 33) & (df["lat"] < 53) & 
+            (df["lon"] >= 2) & (df["lon"] < 22)]
     
     # Get unique coordinates to understand the grid structure
     lats = sorted(df['lat'].unique())
@@ -77,5 +77,5 @@ def load_and_prepare_data_2D(file_path="data/df_equator_2D.csv"):
 # print(f"Years: {years}")
 # print(f"Latitudes: {lats}")
 # print(f"Longitudes: {lons}")
-#data = load_and_prepare_data_2D()      #<---- This is 2D
+data_2D = load_and_prepare_data_2D()      #<---- This is 2D
 data = load_and_prepare_data()      #<---- This is 1D

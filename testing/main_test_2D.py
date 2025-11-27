@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from src.data_import import data
+from src.data_import import data, data_2D
 from src.BSpline import BSplineBasis
 from src.MCMC import run_mcmc
 import random
@@ -333,18 +333,22 @@ def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_
     ax.grid(True, alpha=0.3)
 # Usage in your main script
 if __name__ == "__main__":
-     # --- 1. Create B-Spline Basis ---
+     # --- 1. Create FEM Basis ---
 
-    ############B-Spline Basis##############
-
-    K=15 # number of basis functions. Calles "K" in Biostatistics paper
-    spline_basis=BSplineBasis(t0=0,t1=30, n_basis=K,degree=4)
-    ts, B= spline_basis.evaluate()
-
-  
+    domain = ((2, 33), (22, 53))
+    K = 64  # number of basis nodes
+    fem = FEMBasis2D.from_domain(domain, K)
+    x = np.linspace(2, 22, 20)
+    y = np.linspace(33, 53, 20)
+    X, Y = np.meshgrid(x, y)
+    points = np.vstack([X.ravel(), Y.ravel()]).T
+    phi=fem.evaluate_basis(points)    
+    print(phi.shape)
 
     # --- 2. Import CSV data ---
-
+    data_stack=[data_2D[i].reshape(phi.shape[0]) for i in range(len(data_2D))]
+    print(len(data_stack),type(data_stack))
+    print(data_stack[0].shape)
 
     # --- 3. Define Priors ---
     priors = {
@@ -355,6 +359,6 @@ if __name__ == "__main__":
         'S_b': np.eye(K)   # Prior mean matrix for sigma_b
     }
  # --- 4. Run MCMC ---
-    samples = run_mcmc(data, B.T, priors, n_iter=5000, n_burn=3000)
-    print("\n--- Generating Plots ---")
-    plot_mcmc_results(data, B.T, samples, spline_basis, n_curves=1)
+    samples = run_mcmc(data_stack, phi, priors, n_iter=5000, n_burn=3000)
+    print("\n--- Run Completed ---")
+    #plot_mcmc_results(data, B.T, samples, spline_basis, n_curves=1)
