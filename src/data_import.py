@@ -23,7 +23,7 @@ def load_and_prepare_data(file_path="data/df_equator.csv"):
     
     # Create the desired structure: list of numpy arrays
     # Each array represents temperatures across all longitudes for a specific year
-    data = [pivot_df.iloc[i].values for i in range(len(pivot_df))]
+    data = [pivot_df.iloc[i].values for i in range(len(pivot_df)-20)]
     
     return data
 
