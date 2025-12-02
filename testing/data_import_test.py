@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 import matplotlib.colors as mcolors
 import numpy as np
-from src.data_import import data
+from src.data_import import data, data_2D
 from mpl_toolkits.mplot3d import Axes3D
 
 ##############################################################
@@ -363,7 +363,7 @@ if __name__ == "__main__":
     
     # Test with the individual plotting version (more similar to original)
     #plot_longitude_means_individual(data)     #--->2D plot
-    #plot_temperature_3d_scatter(data)      
-    plot_temperature_3d_scatter_animated_simple(data)      #-----> 3D interactive (useful)
+    plot_temperature_3d_scatter(data_2D)      
+    #plot_temperature_3d_scatter_animated_simple(data_2D)      #-----> 3D interactive (useful)
     plt.show()
     print('Plot generated successfully!')

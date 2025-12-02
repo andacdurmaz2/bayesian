@@ -5,6 +5,7 @@ from src.data_import import data
 from src.BSpline import BSplineBasis
 from src.MCMC import run_mcmc
 import random
+from src.FEMBasis import FEMBasis2D
 
 def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     """
@@ -27,9 +28,11 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     """
     
     np.random.seed(seed)
+    plot_mean_avg(data,samples,spline_basis)
+    overview_means(data,B, samples, spline_basis)
     # Create figure and axis properly
     fig, ax = plt.subplots(figsize=(12, 8))
-    plot_mean_all_points(ax, data, B, samples, spline_basis, group_idx=0, n_curves=1000)
+    plot_mean_all_points(ax, data, B, samples, spline_basis, group_idx=0, n_curves=50)
     plt.tight_layout()
     plt.show()
     fig = plt.figure(figsize=(15, 12))
@@ -52,11 +55,30 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     
     plt.tight_layout()
     plt.show()
+
     
     # Additional detailed plots
     #plot_detailed_traces(samples)
     #plot_posterior_distributions(samples)
 
+def overview_means(data, B_old, samples, spline_basis, group_idx=0, n_curves=1):
+    ax1 = plt.subplot(2, 2, 1)
+    plot_fitted_curves(ax1, data, B_old, samples, spline_basis, group_idx=0, n_curves=n_curves)
+    
+    # 2. Fitted curves for second group (if available)
+    ax2 = plt.subplot(2, 2, 2)
+    plot_fitted_curves(ax2, data, B_old, samples, spline_basis, group_idx=1, n_curves=n_curves)
+    
+    # 3. Trace plots for beta parameters
+    ax3 = plt.subplot(2, 2, 3)
+    plot_fitted_curves(ax3, data, B_old, samples, spline_basis, group_idx=2, n_curves=n_curves)
+    
+    # 4. Trace plots for variance parameters
+    ax4 = plt.subplot(2, 2, 4)
+    plot_fitted_curves(ax4, data, B_old, samples, spline_basis, group_idx=3, n_curves=n_curves)
+    
+    plt.tight_layout()
+    plt.show()
 def plot_fitted_curves(ax, data, B_old, samples, spline_basis, group_idx=0, n_curves=1):
     """Plot fitted curves for a specific group"""
     
@@ -95,13 +117,15 @@ def plot_fitted_curves(ax, data, B_old, samples, spline_basis, group_idx=0, n_cu
         ax.plot(ts, curve, alpha=1, color='blue',label='mean (b[i])')
     
     # Plot mean posterior curve
+    '''
     mean_beta = np.mean(samples['beta'], axis=0)
     if f'b_{group_idx}' in samples:
         mean_b = np.mean(samples[f'b_{group_idx}'], axis=0)
     else:
         mean_b = np.mean(samples['b_0'], axis=0) if 'b_0' in samples else np.zeros_like(mean_beta)
-    
-    mean_curve = B.T @ (mean_b[group_idx])
+    '''
+    mean_b0 = np.stack(samples['b_0']).mean(axis=0)  # (25,15)
+    mean_curve = B.T @ (mean_b0[group_idx])
     ax.plot(ts, mean_curve, 'r-', linewidth=2, label=f'mean (b[{group_idx}])')
     
     ax.set_xlabel('Lon')
@@ -285,18 +309,19 @@ def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_
     
     # Plot posterior curves with transparency so data points are visible
     for idx in selected_indices:
-        beta = samples['beta'][idx]
         
         # Get random effects for this group
         #if f'b_{group_idx}' in samples:
         #    b = samples[f'b_{group_idx}'][idx]
         #else:
             # If no group-specific random effects, use first group or zero
-        b = samples['b_0'][idx] # if 'b_0' in samples else np.zeros_like(beta)
-        
+        #b = samples['b_0'][idx] # if 'b_0' in samples else np.zeros_like(beta)
+        #b = np.stack(samples['b_0']).mean(axis=0)  # (25,15)
         # Calculate fitted curve
-        yr = random.randint(0, 4)
-        curve = B.T @ b[yr]
+        spl = random.randint(0, len(samples['b_0'])-1)
+        yrs=random.randint(0,len(samples['b_0'][0])-1)
+        b = samples['b_0'][spl][yrs]
+        curve = B.T @ b
         
         # Plot with transparency so data points are visible
         label = 'Posterior samples' if idx == selected_indices[0] else ""
@@ -331,14 +356,28 @@ def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_
     
     ax.grid(True, alpha=0.3)
 # Usage in your main script
+
+def plot_mean_avg(data, samples, spline_basis):
+    mean_b0 = np.stack(samples['b_0']).mean(axis=0)  # (25,15)
+    print('mean_b0:',mean_b0.shape)
+    ts, B = spline_basis.evaluate(n_points=200)
+    for n in range(mean_b0.shape[0]):
+        coeffs = mean_b0[n]
+        mean_curve = B.T @ coeffs
+        plt.plot(ts, mean_curve, label=f'year:{n}')
+    plt.legend()
+    plt.show()
+
 if __name__ == "__main__":
      # --- 1. Create B-Spline Basis ---
 
+    ############B-Spline Basis##############
 
     K=15 # number of basis functions. Calles "K" in Biostatistics paper
     spline_basis=BSplineBasis(t0=0,t1=30, n_basis=K,degree=4)
     ts, B= spline_basis.evaluate()
 
+  
 
     # --- 2. Import CSV data ---
 
