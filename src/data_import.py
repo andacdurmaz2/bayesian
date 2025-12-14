@@ -57,6 +57,8 @@ def load_and_prepare_data_2D(file_path="data/df_equator_2D.csv"):
     # Create the 2D structure: list of 2D arrays (lat × lon) for each year
     data = []
     
+    years=years[:4]
+    print('Number of years:',len(years))
     for year in years:
         year_data = df[df['year'] == year]
         
