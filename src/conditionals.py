@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import invgamma, invwishart
-
+from src.sigma_distribution import sigma_distribution, matern_covariance_32, distance_matrix
 
 
 def b_draw(beta, sigma_b, sigma_e, y, X):
@@ -373,4 +373,23 @@ def sigma_b_draw(beta, b, y, n, etha_b, S):
 
     return sigma_b_sample
 
+def sigma_b_draw_MH(beta,b,y,n,var,a_rho,b_rho,a_sgm,b_sgm):
+    #--- 1. Current pdf for last rho and sgm
+    rho,sgm=var
+    current_pdf=sigma_distribution(beta,b,rho,sgm,n,a_rho,b_rho,a_sgm,b_sgm)
 
+    #--- 2. Get new rho and sgm through random walk
+    std_rho=2
+    std_sgm=1
+    rho_prop = rho + np.random.normal(0, std_rho)
+    sgm_prop = sgm + np.random.normal(0, std_sgm)
+    proposed_pdf=sigma_distribution(beta,b,rho_prop,sgm_prop,n,a_rho,b_rho,a_sgm,b_sgm)
+
+    # --- 3. Compare proposed to current and only accept in condition fullfilled
+
+    alpha = min(1.0, proposed_pdf / current_pdf)
+    if np.random.rand() < alpha:
+        rho, sgm = rho_prop, sgm_prop
+        current_pdf = proposed_pdf
+    sigma_b=matern_covariance_32(distance_matrix(beta),rho,sgm)
+    return sigma_b,(rho,sgm)

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from time import perf_counter
 from src.data_import import data, data_2D
-from src.MCMC import run_mcmc
+from src.MCMC_MH import run_mcmc_mh
 from src.FEMBasis import FEMBasis2D
 
 def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     
     # --- 4. Run MCMC ---
     start_time = perf_counter()
-    samples = run_mcmc(data_stack, phi, priors, n_iter=5000, n_burn=2500)
+    samples = run_mcmc_mh(data_stack, phi, priors, n_iter=5000, n_burn=2500)
     print("\n--- Run Completed ---")
     elapsed = perf_counter() - start_time
     print(f"Elapsed time: {elapsed:.2f}s")
