@@ -277,11 +277,11 @@ if __name__ == "__main__":
     
     # --- 4. Run MCMC ---
     start_time = perf_counter()
-    samples = run_mcmc_mh(data_stack, phi, priors, n_iter=5000, n_burn=2500)
+    samples_mh = run_mcmc_mh(data_stack, phi, priors, n_iter=5000, n_burn=2500)
     print("\n--- Run Completed ---")
     elapsed = perf_counter() - start_time
     print(f"Elapsed time: {elapsed:.2f}s")
-    print(samples['beta'][0].shape)
-    print(samples['b_0'].shape) 
-    plot_mcmc_results(data, phi, samples, fem, n_curves=1)
+    print(samples_mh['beta'][0].shape)
+    print(samples_mh['b_0'].shape) 
+    plot_mcmc_results(data, phi, samples_mh, fem, n_curves=1)
     # print elapsed time
