@@ -156,5 +156,5 @@ if __name__ == "__main__":
     print("=" * 60)
     print(f"\nAll results saved in: {os.path.abspath(results_dir)}")
     print(f"Summary file: {summary_path}")
-    print("\nNow you can run: python plotting_script.py")
+    print("\nNow you can run: python -m testing.compare_IW_MH")
     print("=" * 60)

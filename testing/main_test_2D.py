@@ -1,9 +1,23 @@
+# file name: main_test_2D.py
 import numpy as np
 import matplotlib.pyplot as plt
 from time import perf_counter
+import argparse
 from src.data_import import data, data_2D
 from src.MCMC import run_mcmc
+from src.MCMC_MH import run_mcmc_mh
 from src.FEMBasis import FEMBasis2D
+
+def parse_arguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description='Run 2D MCMC with different sampling methods')
+    parser.add_argument('-mh', '--metropolis-hastings', action='store_true',
+                       help='Use Metropolis-Hastings algorithm (default: Gibbs sampling)')
+    parser.add_argument('-n', '--n-iter', type=int, default=5000,
+                       help='Number of MCMC iterations (default: 5000)')
+    parser.add_argument('-b', '--n-burn', type=int, default=2500,
+                       help='Number of burn-in iterations (default: 2500)')
+    return parser.parse_args()
 
 def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     """
@@ -27,7 +41,7 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     
     np.random.seed(seed)
     
-    # Create main figure
+    # Create figure
     fig = plt.figure(figsize=(15, 12))
     
     # 1. Fitted curves for first group
@@ -54,7 +68,7 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     fig.colorbar(c1, cax=cbar_ax, label='Temp')
     
     plt.show()
-    
+        
     # NEW: Create comparison window for year-specific b_i vs year-averaged data
     plot_year_comparison(data_2D, B, samples, spline_basis)
 
@@ -253,9 +267,15 @@ def plot_variance_traces(ax, samples):
 
 # Usage in your main script
 if __name__ == "__main__":
-  # --- 1. Create FEM Basis ---
+    # Parse command line arguments
+    args = parse_arguments()
+    
+    print(f"Running MCMC with method: {'Metropolis-Hastings' if args.metropolis_hastings else 'Gibbs sampling'}")
+    print(f"Iterations: {args.n_iter}, Burn-in: {args.n_burn}")
+    
+    # --- 1. Create FEM Basis ---
     domain = ((2, 33), (22, 53))
-    K = 225  # number of basis nodes
+    K = 64  # number of basis nodes
     fem = FEMBasis2D.from_domain(domain, K)
     x = np.linspace(2, 22, 20)
     y = np.linspace(33, 53, 20)
@@ -277,10 +297,19 @@ if __name__ == "__main__":
     
     # --- 4. Run MCMC ---
     start_time = perf_counter()
-    samples = run_mcmc(data_stack, phi, priors, n_iter=5000, n_burn=2500)
+    
+    if args.metropolis_hastings:
+        # Use Metropolis-Hastings
+        samples = run_mcmc_mh(data_stack, phi, priors, n_iter=args.n_iter, n_burn=args.n_burn)
+    else:
+        # Use Gibbs sampling (default)
+        samples = run_mcmc(data_stack, phi, priors, n_iter=args.n_iter, n_burn=args.n_burn)
+    
     print("\n--- Run Completed ---")
     elapsed = perf_counter() - start_time
     print(f"Elapsed time: {elapsed:.2f}s")
-    print(samples['beta'][0].shape)
-    print(samples['b_0'].shape) 
+    print(f"Beta shape: {samples['beta'][0].shape}")
+    print(f"b_0 shape: {samples['b_0'].shape}")
+    
+    # --- 5. Plot results ---
     plot_mcmc_results(data, phi, samples, fem, n_curves=1)
