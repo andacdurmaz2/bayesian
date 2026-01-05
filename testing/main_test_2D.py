@@ -1,8 +1,23 @@
+# file name: main_test_2D.py
 import numpy as np
 import matplotlib.pyplot as plt
+from time import perf_counter
+import argparse
 from src.data_import import data, data_2D
 from src.MCMC import run_mcmc
+from src.MCMC_MH import run_mcmc_mh
 from src.FEMBasis import FEMBasis2D
+
+def parse_arguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description='Run 2D MCMC with different sampling methods')
+    parser.add_argument('-mh', '--metropolis-hastings', action='store_true',
+                       help='Use Metropolis-Hastings algorithm (default: Gibbs sampling)')
+    parser.add_argument('-n', '--n-iter', type=int, default=5000,
+                       help='Number of MCMC iterations (default: 5000)')
+    parser.add_argument('-b', '--n-burn', type=int, default=2500,
+                       help='Number of burn-in iterations (default: 2500)')
+    return parser.parse_args()
 
 def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     """
@@ -51,6 +66,92 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     # Add a single colorbar for both contour plots
     cbar_ax = fig.add_axes([0.92, 0.55, 0.02, 0.3])  # [left, bottom, width, height]
     fig.colorbar(c1, cax=cbar_ax, label='Temp')
+    
+    plt.show()
+        
+    # NEW: Create comparison window for year-specific b_i vs year-averaged data
+    plot_year_comparison(data_2D, B, samples, spline_basis)
+
+def plot_year_comparison(data_2D, B, samples, fem, n_years=4):
+    """
+    Plot comparison between year-specific b_i values and year-averaged data
+    
+    Parameters:
+    -----------
+    data_2D : array
+        2D data array with shape (time_points, x_dim, y_dim)
+    B : array
+        Basis matrix
+    samples : dict
+        MCMC samples dictionary
+    fem : FEMBasis2D
+        FEM basis object
+    n_years : int
+        Number of years to plot (default: first 4 years)
+    """
+    # Get year-specific b_i values
+    x = np.linspace(2, 22, 60)
+    y = np.linspace(33, 53, 60)
+    X, Y = np.meshgrid(x, y)
+    points = np.vstack([X.ravel(), Y.ravel()]).T
+
+    phi_plot = fem.evaluate_basis(points)
+    mean_b0 = np.stack(samples['b_0']).mean(axis=0)  # Shape: (num_groups, basis_size)
+    
+    # Create figure
+    fig, axes = plt.subplots(2, n_years, figsize=(4*n_years, 8))
+    fig.suptitle('Year-specific Comparison: b_i vs Year-averaged Data', fontsize=14)
+    
+    # Calculate global min/max for consistent color scaling
+    all_fitted_values = []
+    all_data_values = []
+    
+    for year_idx in range(n_years):
+        # Calculate fitted curve for this year
+        mean_curve = phi_plot @ (mean_b0[year_idx])
+        
+        # Reshape to match grid for contour plotting
+        curve_reshaped = mean_curve.reshape(X.shape)
+        
+        all_fitted_values.append(curve_reshaped)
+        all_data_values.append(data_2D[year_idx])
+    
+    # Calculate global min/max
+    global_min = min(np.min(all_fitted_values), np.min(data_2D[:n_years]))
+    global_max = max(np.max(all_fitted_values), np.max(data_2D[:n_years]))
+    
+    # Plot each year
+    for year_idx in range(n_years):
+        # Top row: Year-specific b_i (fitted curve)
+        ax_fitted = axes[0, year_idx]
+        mean_curve = phi_plot @ (mean_b0[year_idx])
+        curve_reshaped = all_fitted_values[year_idx]
+        
+        c1 = ax_fitted.contourf(X, Y, curve_reshaped, levels=20, cmap='viridis',
+                               vmin=global_min, vmax=global_max)
+        ax_fitted.scatter(fem.nodes[:, 0], fem.nodes[:, 1], c='k', s=10, alpha=0.5)
+        ax_fitted.set_title(f'Year {year_idx + 1}: Fitted Curve')
+        ax_fitted.set_xlabel('X coordinate')
+        ax_fitted.set_ylabel('Y coordinate')
+        
+        # Bottom row: Year-averaged data
+        ax_data = axes[1, year_idx]
+        
+        # Create coordinate grid for this specific year's data
+        x_coords = np.linspace(2, 22, data_2D[year_idx].shape[1])
+        y_coords = np.linspace(33, 53, data_2D[year_idx].shape[0])
+        X_data, Y_data = np.meshgrid(x_coords, y_coords)
+        
+        c2 = ax_data.contourf(X_data, Y_data, data_2D[year_idx], levels=20, cmap='viridis',
+                             vmin=global_min, vmax=global_max)
+        ax_data.set_title(f'Year {year_idx + 1}: Original Data')
+        ax_data.set_xlabel('X coordinate')
+        ax_data.set_ylabel('Y coordinate')
+    
+    # Add colorbar
+    plt.tight_layout()
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
+    fig.colorbar(c1, cax=cbar_ax, label='Temperature')
     
     plt.show()
 
@@ -166,6 +267,12 @@ def plot_variance_traces(ax, samples):
 
 # Usage in your main script
 if __name__ == "__main__":
+    # Parse command line arguments
+    args = parse_arguments()
+    
+    print(f"Running MCMC with method: {'Metropolis-Hastings' if args.metropolis_hastings else 'Gibbs sampling'}")
+    print(f"Iterations: {args.n_iter}, Burn-in: {args.n_burn}")
+    
     # --- 1. Create FEM Basis ---
     domain = ((2, 33), (22, 53))
     K = 64  # number of basis nodes
@@ -189,9 +296,20 @@ if __name__ == "__main__":
     }
     
     # --- 4. Run MCMC ---
-    samples = run_mcmc(data_stack, phi, priors, n_iter=5000, n_burn=2500)
+    start_time = perf_counter()
+    
+    if args.metropolis_hastings:
+        # Use Metropolis-Hastings
+        samples = run_mcmc_mh(data_stack, phi, priors, n_iter=args.n_iter, n_burn=args.n_burn)
+    else:
+        # Use Gibbs sampling (default)
+        samples = run_mcmc(data_stack, phi, priors, n_iter=args.n_iter, n_burn=args.n_burn)
+    
     print("\n--- Run Completed ---")
-    print(type(samples['beta']))
-    print(samples['beta'][0].shape)
-    print(samples['b_0'].shape)
+    elapsed = perf_counter() - start_time
+    print(f"Elapsed time: {elapsed:.2f}s")
+    print(f"Beta shape: {samples['beta'][0].shape}")
+    print(f"b_0 shape: {samples['b_0'].shape}")
+    
+    # --- 5. Plot results ---
     plot_mcmc_results(data, phi, samples, fem, n_curves=1)
