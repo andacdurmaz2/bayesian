@@ -56,7 +56,7 @@ if __name__ == "__main__":
     print("=" * 60)
     
     domain = ((2, 33), (22, 53))
-    K = 225  # number of basis nodes
+    K = 64  # number of basis nodes
     fem = FEMBasis2D.from_domain(domain, K)
     x = np.linspace(2, 22, 20)
     y = np.linspace(33, 53, 20)
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     data_path = os.path.join(results_dir, 'data_stack.npy')
     np.save(data_path, data_stack)
     print(f"✓ Saved data stack to: {data_path}")
-    print(f"  Number of data points: {len(data_stack)}")
+    print(f"  Number of data points (years): {len(data_stack)}")
 
     # --- 3. Define Priors ---
     priors = {
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     print("=" * 60)
     
     start_time = perf_counter()
-    samples_normal = run_mcmc(data_stack, phi, priors, n_iter=5000, n_burn=2500)
+    samples_normal = run_mcmc(data_stack, phi, priors, n_iter=5000, n_burn=0)
     elapsed = perf_counter() - start_time
     
     print(f"\n✓ MCMC (IW) completed in {elapsed:.2f}s")
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     print("=" * 60)
     
     start_time = perf_counter()
-    samples_mh = run_mcmc_mh(data_stack, phi, priors, n_iter=5000, n_burn=2500)
+    samples_mh = run_mcmc_mh(data_stack, phi, priors, n_iter=5000, n_burn=0)
     elapsed = perf_counter() - start_time
     
     print(f"\n✓ MCMC (MH) completed in {elapsed:.2f}s")
@@ -156,5 +156,5 @@ if __name__ == "__main__":
     print("=" * 60)
     print(f"\nAll results saved in: {os.path.abspath(results_dir)}")
     print(f"Summary file: {summary_path}")
-    print("\nNow you can run: python -m testing.compare_IW_MH")
+    print("\nNow you can run: python -m testing.compare_IW_MH_plot")
     print("=" * 60)
