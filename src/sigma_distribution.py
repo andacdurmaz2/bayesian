@@ -22,17 +22,17 @@ def matern_covariance_32(distance_matrix, rho, sigma):
     return cov_matrix
 
 def distance_matrix(beta):
-    """More efficient distance matrix computation."""
+    """Create distance Matrix considering the box like strucure of the data"""
     dim = beta.shape[0]
     dim_sqrt = int(np.sqrt(dim))
     
-    # Create coordinates using meshgrid for efficiency
+    # Create coordinates using meshgrid
     x = np.arange(dim_sqrt)
     y = np.arange(dim_sqrt)
     X, Y = np.meshgrid(x, y)
     coords = np.column_stack((X.ravel(), Y.ravel()))
     
-    # Use broadcasting for efficiency
+    # Use broadcasting 
     diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]
     dist_mat = np.sqrt(np.sum(diff**2, axis=-1))
     
@@ -40,9 +40,9 @@ def distance_matrix(beta):
 
 def sigma_distribution_log(beta, b, rho, sgm, n, a_rho, b_rho, a_sgm, b_sgm):
     """
-    Compute the LOG probability to avoid numerical overflow.
+    Compute the LOG probability of the sigma_b defined. To avoid numerical overflow we use LOG.
     
-    Returns: log(p(beta, b, rho, sgm | data))
+    Returns: Probabibility for the given rho and sgm
     """
     # --- 1. Priors (work in log space) ---
     # Using scipy's logpdf directly

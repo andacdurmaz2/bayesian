@@ -98,7 +98,7 @@ def run_mcmc(y_list, X_list, priors, n_iter=2000, n_burn=1000):
     # Get dimensions
     n = len(y_list)
     z = X_list.shape[1]
-    print(z)
+    print('Number of Basis functions',z)
 
     # --- Initialize the chain ---
     print("Initializing chain...")

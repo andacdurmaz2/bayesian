@@ -33,8 +33,8 @@ def run_one_gibbs(y, X, sigma_b, sigma_e, b, beta, priors,sigma_b_var_curr):
     Returns
     -------
     tuple
-        A tuple of the updated parameters:
-        (sigma_b_new, sigma_e_new, b_new, beta_new)
+        A tuple of all updated parameters:
+        (sigma_b_new, sigma_e_new, b_new, beta_new, sigma_b_var)
     """
 
     # Get constants from data
@@ -96,7 +96,7 @@ def run_one_gibbs(y, X, sigma_b, sigma_e, b, beta, priors,sigma_b_var_curr):
 def run_mcmc_mh(y_list, X_list, priors, n_iter=2000, n_burn=1000):
 
     """
-    Runs the full MCMC chain with MH in it.
+    Runs the full MCMC chain with MH in it to sample Sigma_b
     """
 
     # Get dimensions
@@ -145,7 +145,7 @@ def run_mcmc_mh(y_list, X_list, priors, n_iter=2000, n_burn=1000):
             sigma_b_samples[idx, :, :] = sigma_b_curr
             sigma_b_var_samples[idx]=sigma_b_var_curr
             for j in range(n):
-                b_0_samples[idx, j,:] = b_curr[j]
+                b_0_samples[idx, j,:] = b_curr[j] # Saves the b's year specific
 
         if (i + 1) % 500 == 0:
             print(f"Iteration {i+1}/{n_iter}...")
