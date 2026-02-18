@@ -92,7 +92,7 @@ def sigma_distribution_log(beta, b, rho, sgm, n, a_rho, b_rho, a_sgm, b_sgm):
         z = solve_triangular(L, deviation, lower=True, check_finite=False)
         
         # Mahalanobis distance squared = z^T * z
-        total_mahalanobis += float(z.T @ z)
+        total_mahalanobis += (z.T @ z).item()
     
     # --- 6. Combine all log probabilities ---
     # Original formula: prob = det(cov)^(-n/2) * exp(-sum_of_squares/2) * priors
@@ -106,16 +106,24 @@ def sigma_distribution_log(beta, b, rho, sgm, n, a_rho, b_rho, a_sgm, b_sgm):
     # Additional stability: if log_prob is too small, return a very small number
     if not np.isfinite(log_prob):
         return -1e6
-    
-    return float(log_prob)
+
+    k = beta.size  # Total dimensions (e.g., 400)
+
+    # Standard Gaussian constant: - (n * k / 2) * log(2 * pi)
+    log_constant = -(n * k / 2) * np.log(2 * np.pi)
+
+    log_likelihood = (-n / 2) * log_det_cov - total_mahalanobis / 2 + log_constant
+
+    return float(log_likelihood + log_roh_prob + log_sgm_prob)
+    #return float(log_prob)
 
 # For backward compatibility, you can keep the original but use log version internally
 def sigma_distribution(beta, b, rho, sgm, n, a_rho, b_rho, a_sgm, b_sgm):
     """Original function using safe computation."""
     log_prob = sigma_distribution_log(beta, b, rho, sgm, n, a_rho, b_rho, a_sgm, b_sgm)
-    
+    return log_prob
     # Only exponentiate if needed (be careful!)
-    if log_prob < -700:
-        return 0.0
-    else:
-        return np.exp(log_prob)
+    #if log_prob < -700:
+    #    return 0.0
+    #else:
+    #    return np.exp(log_prob)

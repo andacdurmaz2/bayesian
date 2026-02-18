@@ -34,11 +34,11 @@ def plot_longitude_means_individual(data_list, years=None):
             # Only add label for first longitude to avoid duplicate legend entries
             label = str(year) if lon_idx == 0 else ""
             plt.scatter(lon, temp, 
-                       color=year_colors[year], label=label, alpha=0.7, s=20)
+                       color=year_colors[year], alpha=0.7, s=20)
     
-    plt.title("Mean Temperature per Year for Each Longitude")
-    plt.xlabel("Longitude")
-    plt.ylabel("Mean Temperature")
+    plt.title("Mean Temperature per Year for Each Longitude", fontsize=24, fontweight='bold')
+    plt.xlabel("Longitude", fontsize=18)
+    plt.ylabel("Mean Temperature", fontsize=18)
     plt.grid(True, alpha=0.3)
     
     # Create clean legend
@@ -52,7 +52,7 @@ def plot_longitude_means_individual(data_list, years=None):
     sorted_years = sorted(unique.keys(), key=int)
     unique_handles = [unique[year] for year in sorted_years]
     
-    plt.legend(unique_handles, sorted_years, title="Year", loc='best')
+    #plt.legend(unique_handles, sorted_years, title="Year", loc='best')
     
     plt.tight_layout()
     plt.show()
@@ -362,8 +362,8 @@ if __name__ == "__main__":
         print(f"First few longitudes sample: {data[0][:5]}")  # First 5 values
     
     # Test with the individual plotting version (more similar to original)
-    #plot_longitude_means_individual(data)     #--->2D plot
-    plot_temperature_3d_scatter(data_2D)      
-    #plot_temperature_3d_scatter_animated_simple(data_2D)      #-----> 3D interactive (useful)
+    plot_longitude_means_individual(data)     #--->2D plot
+    plot_temperature_3d_scatter(data_2D)
+    plot_temperature_3d_scatter_animated_simple(data_2D)      #-----> 3D interactive (useful)
     plt.show()
     print('Plot generated successfully!')

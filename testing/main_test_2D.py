@@ -61,12 +61,12 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     plot_variance_traces(ax4, samples)
     
     # Create shared colorbar for the contour plots
-    plt.tight_layout()
+    #plt.tight_layout()
     
     # Add a single colorbar for both contour plots
     cbar_ax = fig.add_axes([0.92, 0.55, 0.02, 0.3])  # [left, bottom, width, height]
     fig.colorbar(c1, cax=cbar_ax, label='Temp')
-    
+    plt.subplots_adjust(hspace=0.4, wspace=0.3)
     plt.show()
         
     # NEW: Create comparison window for year-specific b_i vs year-averaged data
@@ -149,10 +149,11 @@ def plot_year_comparison(data_2D, B, samples, fem, n_years=4):
         ax_data.set_ylabel('Y coordinate')
     
     # Add colorbar
-    plt.tight_layout()
+    #plt.tight_layout()
     cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
     fig.colorbar(c1, cax=cbar_ax, label='Temperature')
-    
+    plt.subplots_adjust(hspace=0.4, wspace=0.3)
+
     plt.show()
 
 def plot_fitted_curves(ax, data, fem, samples, B, group_idx=0, n_curves=1):
@@ -277,8 +278,8 @@ if __name__ == "__main__":
     domain = ((2, 33), (22, 53))
     K = 64  # number of basis nodes
     fem = FEMBasis2D.from_domain(domain, K)
-    x = np.linspace(2, 22, 20)
-    y = np.linspace(33, 53, 20)
+    x = np.linspace(2, 22, 21)
+    y = np.linspace(33, 53, 21)
     X, Y = np.meshgrid(x, y)
     points = np.vstack([X.ravel(), Y.ravel()]).T
     phi = fem.evaluate_basis(points)    

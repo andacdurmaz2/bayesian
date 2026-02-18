@@ -18,7 +18,7 @@ class FEMBasis2D:
 
     def from_domain(cls, domain, K, exact=False):
         """
-        makes a unifrom gris with the K amount of nodes we want to have
+        makes a unifrom grid with the K amount of nodes we want to have
 
         K = amount of basis we want to have, corresponding to the amount of nodes
         Generate K (approximately) basis nodes uniformly over the domain.

@@ -58,8 +58,8 @@ if __name__ == "__main__":
     domain = ((2, 33), (22, 53))
     K = 64  # number of basis nodes
     fem = FEMBasis2D.from_domain(domain, K)
-    x = np.linspace(2, 22, 20)
-    y = np.linspace(33, 53, 20)
+    x = np.linspace(2, 22, 21)
+    y = np.linspace(33, 53, 21)
     X, Y = np.meshgrid(x, y)
     points = np.vstack([X.ravel(), Y.ravel()]).T
     phi = fem.evaluate_basis(points)
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     print("=" * 60)
     
     start_time = perf_counter()
-    samples_normal = run_mcmc(data_stack, phi, priors, n_iter=5000, n_burn=0)
+    samples_normal = run_mcmc(data_stack, phi, priors, n_iter=5000, n_burn=2500)
     elapsed = perf_counter() - start_time
     
     print(f"\n✓ MCMC (IW) completed in {elapsed:.2f}s")
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     print("=" * 60)
     
     start_time = perf_counter()
-    samples_mh = run_mcmc_mh(data_stack, phi, priors, n_iter=5000, n_burn=0)
+    samples_mh = run_mcmc_mh(data_stack, phi, priors, n_iter=5000, n_burn=2500)
     elapsed = perf_counter() - start_time
     
     print(f"\n✓ MCMC (MH) completed in {elapsed:.2f}s")
