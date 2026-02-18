@@ -36,7 +36,7 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     plt.tight_layout()
     plt.show()
     fig = plt.figure(figsize=(15, 12))
-    
+    plt.figure(figsize=(15, 12), constrained_layout=True)
     # 1. Fitted curves for first group
     ax1 = plt.subplot(2, 2, 1)
     plot_fitted_curves(ax1, data, B, samples, spline_basis, group_idx=0, n_curves=n_curves)
@@ -53,7 +53,6 @@ def plot_mcmc_results(data, B, samples, spline_basis, n_curves=50, seed=42):
     ax4 = plt.subplot(2, 2, 4)
     plot_variance_traces(ax4, samples)
     
-    plt.tight_layout()
     plt.show()
 
     
@@ -87,9 +86,9 @@ def plot_fitted_curves(ax, data, B_old, samples, spline_basis, group_idx=0, n_cu
     # Randomly select posterior samples to plot
     n_samples = len(samples['beta'])
     selected_indices = np.random.choice(n_samples, n_curves, replace=False)
-    
+
     # Plot original data
-    ts_data=t_eval = np.linspace(0, 30, 30)
+    ts_data=t_eval = np.linspace(30, 60, 30)
     if group_idx < len(data):
         group_data = data[group_idx]
         if group_data.ndim == 2:
@@ -114,7 +113,7 @@ def plot_fitted_curves(ax, data, B_old, samples, spline_basis, group_idx=0, n_cu
         curve = B.T @ beta
         
         # Plot with low alpha for posterior uncertainty
-        ax.plot(ts, curve, alpha=1, color='blue',label='mean (b[i])')
+        ax.plot(ts, curve, alpha=1, color='red',label='mean over all b[i]')
     
     # Plot mean posterior curve
     '''
@@ -126,11 +125,10 @@ def plot_fitted_curves(ax, data, B_old, samples, spline_basis, group_idx=0, n_cu
     '''
     mean_b0 = np.stack(samples['b_0']).mean(axis=0)  # (25,15)
     mean_curve = B.T @ (mean_b0[group_idx])
-    ax.plot(ts, mean_curve, 'r-', linewidth=2, label=f'mean (b[{group_idx}])')
-    
-    ax.set_xlabel('Lon')
-    ax.set_ylabel('Temperature')
-    ax.set_title(f'Fitted Curves over data from year: {group_idx}')
+    ax.plot(ts, mean_curve, 'r-', color = 'blue', linewidth=2, label=f'mean b[{group_idx}] for specific i = {group_idx}')
+    ax.set_xlabel('Lon', fontsize = 15)
+    ax.set_ylabel('Temperature', fontsize = 15)
+    ax.set_title(f'Fitted Curves over data from year: {group_idx}', fontsize = 20, fontweight='bold')
     ax.legend()
     ax.grid(True, alpha=0.3)
 
@@ -142,9 +140,9 @@ def plot_beta_traces(ax, samples):
     for i in range(n_beta):
         ax.plot(beta_samples[:, i], alpha=0.7, label=f'β{i}')
     
-    ax.set_xlabel('Iteration')
-    ax.set_ylabel('Value')
-    ax.set_title('Trace Plots - Beta Parameters')
+    ax.set_xlabel('Iteration', fontsize=15)
+    ax.set_ylabel('Value', fontsize=15)
+    ax.set_title('Trace Plots - Beta Parameters', fontsize=20, fontweight='bold')
     ax.legend()
     ax.grid(True, alpha=0.3)
 
@@ -160,9 +158,9 @@ def plot_variance_traces(ax, samples):
         for i in range(min(3, n_b)):  # Plot first 3 diagonal elements
             ax.plot(sigma_b_samples[:, i, i], alpha=0.7, label=f'σ_b[{i},{i}]')
     
-    ax.set_xlabel('Iteration')
-    ax.set_ylabel('Value')
-    ax.set_title('Trace Plots - Variance Parameters')
+    ax.set_xlabel('Iteration', fontsize=15)
+    ax.set_ylabel('Value', fontsize=15)
+    ax.set_title('Trace Plots - Variance Parameters', fontsize=20, fontweight='bold')
     ax.legend()
     ax.grid(True, alpha=0.3)
 
@@ -289,7 +287,7 @@ def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_
     n_longitudes = data_array.shape[1]
     original_longitudes = np.linspace(30, 60, n_longitudes, endpoint=False)
     # Map longitudes from 30-60 range to 0-30 range
-    mapped_longitudes = original_longitudes - 30
+    mapped_longitudes = original_longitudes
     
     # Create color mapping
     cmap = plt.get_cmap('tab20')
@@ -304,7 +302,7 @@ def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_
         label = str(year) if time_idx == 0 else ""
         
         # Plot all longitudes for this time point (mapped to 0-30 range)
-        ax.scatter(mapped_longitudes, temps, 
+        ax.scatter(original_longitudes, temps,
                    color=year_colors[year], label=label, alpha=0.7, s=20, zorder=5)
     
     # Plot posterior curves with transparency so data points are visible
@@ -322,10 +320,10 @@ def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_
         yrs=random.randint(0,len(samples['b_0'][0])-1)
         b = samples['b_0'][spl][yrs]
         curve = B.T @ b
-        
+        current_year_color = year_colors[yrs]
         # Plot with transparency so data points are visible
         label = 'Posterior samples' if idx == selected_indices[0] else ""
-        ax.plot(ts, curve, alpha=0.1, color='blue', label=label, zorder=3)
+        ax.plot(ts, curve, alpha=0.5, color=current_year_color, label=label, zorder=3)
     
     # Plot mean posterior curve
     mean_beta = np.mean(samples['beta'], axis=0)
@@ -338,9 +336,9 @@ def plot_mean_all_points(ax, data, B_old, samples, spline_basis, group_idx=0, n_
     ax.plot(ts, mean_curve, 'r-', linewidth=3, label='Mean posterior', zorder=4)
     
     # Set labels and title
-    ax.set_xlabel('Longitude (0-30)')
-    ax.set_ylabel('Temperature')
-    ax.set_title(f'Fitted Curves over all datapoints')
+    ax.set_xlabel('Longitude (30-60)', fontsize = 18)
+    ax.set_ylabel('Temperature', fontsize = 18)
+    ax.set_title(f'Fitted Curves over all datapoints', fontsize = 25, fontweight='bold')
     
     # Create clean legend without duplicates
     handles, labels = ax.get_legend_handles_labels()
@@ -374,7 +372,7 @@ if __name__ == "__main__":
     ############B-Spline Basis##############
 
     K=15 # number of basis functions. Calles "K" in Biostatistics paper
-    spline_basis=BSplineBasis(t0=0,t1=30, n_basis=K,degree=4)
+    spline_basis=BSplineBasis(t0=30,t1=60, n_basis=K,degree=4)
     ts, B= spline_basis.evaluate()
 
   
@@ -391,6 +389,6 @@ if __name__ == "__main__":
         'S_b': np.eye(K)   # Prior mean matrix for sigma_b
     }
  # --- 4. Run MCMC ---
-    samples = run_mcmc(data, B.T, priors, n_iter=5000, n_burn=3000)
+    samples = run_mcmc(data, B.T, priors, n_iter=5000, n_burn=2500)
     print("\n--- Generating Plots ---")
     plot_mcmc_results(data, B.T, samples, spline_basis, n_curves=1)

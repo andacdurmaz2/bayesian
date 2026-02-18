@@ -46,7 +46,7 @@ def load_samples(filename):
 
 def plot_covariance_matrix(cov_matrix_1, title="Covariance Matrix", 
                           figsize=(12, 10), cmap="RdBu_r",
-                          colorbar=True, fontsize=12, dpi=100):
+                          colorbar=True, fontsize=26, dpi=100):
     """
     Plot a covariance matrix with nice formatting.
     """
@@ -57,7 +57,8 @@ def plot_covariance_matrix(cov_matrix_1, title="Covariance Matrix",
         print(f"  Taking mean over {cov_matrix_1.shape[0]} samples")
         cov_matrix_1 = np.mean(cov_matrix_1, axis=0)
 
-    cov_matrix=np.linalg.inv(cov_matrix_1)
+    #cov_matrix=np.linalg.inv(cov_matrix_1)
+    cov_matrix = cov_matrix_1
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     
     # Create symmetric colormap centered at 0

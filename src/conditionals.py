@@ -356,8 +356,8 @@ def sigma_b_draw(beta, b, y, n, etha_b, S):
         sum_of_squares += deviation @ deviation.T
 
     # The posterior scale matrix: S_posterior = S_0 + sum_of_squares
-    S_posterior = 1 / eta_posterior * (S_0 + sum_of_squares)
-
+    # S_posterior = 1 / eta_posterior * (S_0 + sum_of_squares)
+    S_posterior = S_0 + sum_of_squares
     # --- 3. Draw from the posterior Inverse-Wishart ---
 
     # Add a small jitter for numerical stability, as the
@@ -379,16 +379,22 @@ def sigma_b_draw_MH(beta,b,y,n,var,a_rho,b_rho,a_sgm,b_sgm):
     current_pdf=sigma_distribution(beta,b,rho,sgm,n,a_rho,b_rho,a_sgm,b_sgm)
 
     #--- 2. Get new rho and sgm through random walk
-    std_rho=2
-    std_sgm=1
+    std_rho=0.05
+    std_sgm=0.02
     rho_prop = rho + np.random.normal(0, std_rho)
     sgm_prop = sgm + np.random.normal(0, std_sgm)
+
+    if rho_prop <= 0 or sgm_prop <= 0:
+        # Reject: Return old state
+        cov = matern_covariance_32(distance_matrix(beta), rho, sgm)
+        return cov, (rho, sgm)
     proposed_pdf=sigma_distribution(beta,b,rho_prop,sgm_prop,n,a_rho,b_rho,a_sgm,b_sgm)
 
     # --- 3. Compare proposed to current and only accept in condition fullfilled
 
-    alpha = min(1.0, proposed_pdf / current_pdf)
-    if np.random.rand() < alpha:
+    # alpha = min(1.0, proposed_pdf / current_pdf)
+    log_alpha = proposed_pdf - current_pdf
+    if np.log(np.random.uniform(0, 1)) < log_alpha:
         rho, sgm = rho_prop, sgm_prop
         current_pdf = proposed_pdf
     sigma_b=matern_covariance_32(distance_matrix(beta),rho,sgm)
